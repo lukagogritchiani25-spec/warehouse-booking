@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: warehouse-booking-api
+    runtime: dotnet
+    buildCommand: dotnet publish -c Release -o out
+    startCommand: cd out && dotnet WarehouseBooking.API.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:$PORT
+      - key: ConnectionStrings__DefaultConnection
+        sync: false  # Set this in Render dashboard
+      - key: JwtSettings__Secret
+        generateValue: true
+      - key: JwtSettings__Issuer
+        value: WarehouseBookingAPI
+      - key: JwtSettings__Audience
+        value: WarehouseBookingClient
+      - key: JwtSettings__ExpiryInMinutes
+        value: 60
