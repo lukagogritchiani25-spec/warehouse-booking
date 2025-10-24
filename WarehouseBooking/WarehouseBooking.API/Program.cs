@@ -13,17 +13,25 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get connection string with fallback to direct env var
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+// Get connection string - prioritize DATABASE_URL for Docker/Render compatibility
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? string.Empty;
+
+Console.WriteLine($"=== DEBUG: Connection String Check ===");
+Console.WriteLine($"DATABASE_URL exists: {!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL"))}");
+Console.WriteLine($"ConnectionStrings__DefaultConnection exists: {!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"))}");
+Console.WriteLine($"Config DefaultConnection exists: {!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection"))}");
+Console.WriteLine($"Final connection string length: {connectionString.Length}");
+Console.WriteLine($"=====================================");
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Database connection string not found. Please set ConnectionStrings__DefaultConnection or DATABASE_URL environment variable.");
+    throw new InvalidOperationException("Database connection string not found. Set DATABASE_URL environment variable.");
 }
 
-// Add DbContext
+// Add DbContext with the resolved connection string
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
