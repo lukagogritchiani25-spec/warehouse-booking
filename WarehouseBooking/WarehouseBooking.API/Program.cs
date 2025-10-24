@@ -36,9 +36,10 @@ if (string.IsNullOrEmpty(connectionString))
 // Add DbContext with the resolved connection string
 // Use a lambda to ensure the connection string is properly captured
 var dbConnectionString = connectionString; // Capture in closure
+Console.WriteLine($"CAPTURED connection string for DbContext: {dbConnectionString}");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    Console.WriteLine($"DbContext being created with connection string length: {dbConnectionString.Length}");
+    Console.WriteLine($"DbContext being created, about to call UseNpgsql with: {dbConnectionString}");
     options.UseNpgsql(dbConnectionString);
 });
 
