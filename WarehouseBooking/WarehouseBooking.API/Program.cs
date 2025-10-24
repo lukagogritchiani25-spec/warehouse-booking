@@ -13,13 +13,31 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Get connection string with fallback to direct env var
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Database connection string not found. Please set ConnectionStrings__DefaultConnection or DATABASE_URL environment variable.");
+}
+
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
-// Add JWT Authentication
+// Add JWT Authentication with fallback to direct env vars
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["Secret"];
+var secretKey = jwtSettings["Secret"]
+    ?? Environment.GetEnvironmentVariable("JwtSettings__Secret")
+    ?? throw new InvalidOperationException("JWT Secret not found");
+var issuer = jwtSettings["Issuer"]
+    ?? Environment.GetEnvironmentVariable("JwtSettings__Issuer")
+    ?? "WarehouseBookingAPI";
+var audience = jwtSettings["Audience"]
+    ?? Environment.GetEnvironmentVariable("JwtSettings__Audience")
+    ?? "WarehouseBookingClient";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -34,9 +52,9 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
         ClockSkew = TimeSpan.Zero
     };
 });
