@@ -24,6 +24,8 @@ Console.WriteLine($"DATABASE_URL exists: {!string.IsNullOrEmpty(Environment.GetE
 Console.WriteLine($"ConnectionStrings__DefaultConnection exists: {!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"))}");
 Console.WriteLine($"Config DefaultConnection exists: {!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection"))}");
 Console.WriteLine($"Final connection string length: {connectionString.Length}");
+Console.WriteLine($"Connection string (first 30 chars): {(connectionString.Length > 30 ? connectionString.Substring(0, 30) : connectionString)}");
+Console.WriteLine($"Connection string (last 20 chars): {(connectionString.Length > 20 ? connectionString.Substring(connectionString.Length - 20) : connectionString)}");
 Console.WriteLine($"=====================================");
 
 if (string.IsNullOrEmpty(connectionString))
