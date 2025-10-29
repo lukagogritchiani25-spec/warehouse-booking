@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
@@ -9,10 +10,12 @@ type AuthMode = 'login' | 'register';
 
 const AuthModal = ({ onClose }: AuthModalProps) => {
   const { login, register } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +29,13 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
       if (mode === 'login') {
         await login({ email, password });
       } else {
-        await register({ email, password, fullName, phoneNumber: phoneNumber || undefined });
+        await register({
+          email,
+          password,
+          firstName,
+          lastName,
+          phoneNumber: phoneNumber || undefined
+        });
       }
       onClose();
     } catch (err: unknown) {
@@ -34,6 +43,11 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    onClose();
+    navigate('/forgot-password');
   };
 
   return (
@@ -49,17 +63,30 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
         <div className="modal-body">
           <form onSubmit={handleSubmit} className="auth-form">
             {mode === 'register' && (
-              <div className="form-group">
-                <label htmlFor="fullName">Full Name</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  placeholder="John Doe"
-                />
-              </div>
+              <>
+                <div className="form-group">
+                  <label htmlFor="firstName">First Name</label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    placeholder="John"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="lastName">Last Name</label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    placeholder="Doe"
+                  />
+                </div>
+              </>
             )}
 
             <div className="form-group">
@@ -105,6 +132,14 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
             <button type="submit" className="btn-primary btn-block" disabled={loading}>
               {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
+
+            {mode === 'login' && (
+              <div className="forgot-password-link">
+                <button onClick={handleForgotPassword} className="link-button">
+                  Forgot password?
+                </button>
+              </div>
+            )}
           </form>
 
           <div className="auth-switch">

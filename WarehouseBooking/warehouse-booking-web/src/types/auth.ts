@@ -6,8 +6,10 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   phoneNumber?: string;
+  address?: string;
 }
 
 export interface AuthResponse {
@@ -17,9 +19,30 @@ export interface AuthResponse {
 
 export interface UserDto {
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  fullName: string;
   phoneNumber?: string;
-  role: string;
+  address?: string;
+  isEmailConfirmed: boolean;
   createdAt: string;
+}
+
+export interface ConfirmEmailRequest {
+  token: string;
+  email: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
+export interface ResendConfirmationRequest {
+  email: string;
 }

@@ -1,6 +1,14 @@
 import axios from 'axios';
 import type { ApiResponse, WarehouseDto, WarehouseUnitDto } from '../types/warehouse';
-import type { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
+import type {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  ConfirmEmailRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ResendConfirmationRequest
+} from '../types/auth';
 import type { BookingDto, CreateBookingRequest } from '../types/booking';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -68,6 +76,38 @@ export const authApi = {
     const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
       '/auth/register',
       userData
+    );
+    return data;
+  },
+
+  confirmEmail: async (confirmData: ConfirmEmailRequest) => {
+    const { data } = await apiClient.post<ApiResponse<string>>(
+      '/auth/confirm-email',
+      confirmData
+    );
+    return data;
+  },
+
+  resendConfirmation: async (resendData: ResendConfirmationRequest) => {
+    const { data } = await apiClient.post<ApiResponse<string>>(
+      '/auth/resend-confirmation',
+      resendData
+    );
+    return data;
+  },
+
+  forgotPassword: async (forgotData: ForgotPasswordRequest) => {
+    const { data } = await apiClient.post<ApiResponse<string>>(
+      '/auth/forgot-password',
+      forgotData
+    );
+    return data;
+  },
+
+  resetPassword: async (resetData: ResetPasswordRequest) => {
+    const { data } = await apiClient.post<ApiResponse<string>>(
+      '/auth/reset-password',
+      resetData
     );
     return data;
   },

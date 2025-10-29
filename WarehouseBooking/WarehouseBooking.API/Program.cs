@@ -77,11 +77,19 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Add Resend Email Service
+var resendApiKey = builder.Configuration["Resend:ApiKey"]
+    ?? Environment.GetEnvironmentVariable("Resend__ApiKey")
+    ?? throw new InvalidOperationException("Resend API Key not found");
+
+builder.Services.AddSingleton<Resend.IResend>(sp => Resend.ResendClient.Create(resendApiKey));
+
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add Controllers
 builder.Services.AddControllers();

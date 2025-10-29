@@ -107,7 +107,7 @@ function App() {
             </a>
             {isAuthenticated ? (
               <div className="user-menu">
-                <span className="user-name">{user?.fullName}</span>
+                <span className="user-name">{user?.firstName} {user?.lastName}</span>
                 <button onClick={logout} className="nav-link">
                   Sign Out
                 </button>

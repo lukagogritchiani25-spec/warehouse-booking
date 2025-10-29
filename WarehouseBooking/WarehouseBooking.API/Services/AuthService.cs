@@ -13,11 +13,13 @@ namespace WarehouseBooking.API.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterDto registerDto)
@@ -33,6 +35,10 @@ namespace WarehouseBooking.API.Services
                 // Hash password
                 var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
+                // Generate email confirmation token
+                var confirmationToken = GenerateSecureToken();
+                var tokenExpiry = DateTime.UtcNow.AddHours(24);
+
                 // Create user
                 var user = new User
                 {
@@ -45,11 +51,18 @@ namespace WarehouseBooking.API.Services
                     Address = registerDto.Address,
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true,
-                    IsEmailConfirmed = false
+                    IsEmailConfirmed = false,
+                    EmailConfirmationToken = confirmationToken,
+                    EmailConfirmationTokenExpiry = tokenExpiry
                 };
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
+
+                // Send confirmation email
+                var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
+                var confirmationLink = $"{baseUrl}/api/auth/confirm-email?token={confirmationToken}&email={user.Email}";
+                await _emailService.SendEmailConfirmationAsync(user.Email, user.FirstName, confirmationLink);
 
                 // Generate JWT token
                 var token = GenerateJwtToken(user);
@@ -175,6 +188,170 @@ namespace WarehouseBooking.API.Services
                 IsEmailConfirmed = user.IsEmailConfirmed,
                 CreatedAt = user.CreatedAt
             };
+        }
+
+        public async Task<ApiResponse<string>> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == confirmEmailDto.Email);
+
+                if (user == null)
+                {
+                    return ApiResponse<string>.FailureResponse("User not found");
+                }
+
+                if (user.IsEmailConfirmed)
+                {
+                    return ApiResponse<string>.FailureResponse("Email is already confirmed");
+                }
+
+                if (user.EmailConfirmationToken != confirmEmailDto.Token)
+                {
+                    return ApiResponse<string>.FailureResponse("Invalid confirmation token");
+                }
+
+                if (user.EmailConfirmationTokenExpiry < DateTime.UtcNow)
+                {
+                    return ApiResponse<string>.FailureResponse("Confirmation token has expired. Please request a new one");
+                }
+
+                // Confirm email
+                user.IsEmailConfirmed = true;
+                user.EmailConfirmationToken = null;
+                user.EmailConfirmationTokenExpiry = null;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                // Send welcome email
+                await _emailService.SendWelcomeEmailAsync(user.Email, user.FirstName);
+
+                return ApiResponse<string>.SuccessResponse("Email confirmed successfully", "Email confirmed successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<string>.FailureResponse($"Email confirmation failed: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<string>> ResendConfirmationEmailAsync(ResendConfirmationEmailDto resendDto)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == resendDto.Email);
+
+                if (user == null)
+                {
+                    return ApiResponse<string>.FailureResponse("User not found");
+                }
+
+                if (user.IsEmailConfirmed)
+                {
+                    return ApiResponse<string>.FailureResponse("Email is already confirmed");
+                }
+
+                // Generate new confirmation token
+                var confirmationToken = GenerateSecureToken();
+                var tokenExpiry = DateTime.UtcNow.AddHours(24);
+
+                user.EmailConfirmationToken = confirmationToken;
+                user.EmailConfirmationTokenExpiry = tokenExpiry;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                // Send confirmation email
+                var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
+                var confirmationLink = $"{baseUrl}/api/auth/confirm-email?token={confirmationToken}&email={user.Email}";
+                await _emailService.SendEmailConfirmationAsync(user.Email, user.FirstName, confirmationLink);
+
+                return ApiResponse<string>.SuccessResponse("Confirmation email sent successfully", "Confirmation email sent successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<string>.FailureResponse($"Failed to resend confirmation email: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<string>> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == forgotPasswordDto.Email);
+
+                if (user == null)
+                {
+                    // For security, don't reveal if email exists
+                    return ApiResponse<string>.SuccessResponse("If your email is registered, you will receive a password reset link", "Password reset email sent");
+                }
+
+                // Generate password reset token
+                var resetToken = GenerateSecureToken();
+                var tokenExpiry = DateTime.UtcNow.AddHours(1);
+
+                user.PasswordResetToken = resetToken;
+                user.PasswordResetTokenExpiry = tokenExpiry;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                // Send password reset email
+                var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
+                var resetLink = $"{baseUrl}/api/auth/reset-password?token={resetToken}&email={user.Email}";
+                await _emailService.SendPasswordResetAsync(user.Email, user.FirstName, resetLink);
+
+                return ApiResponse<string>.SuccessResponse("If your email is registered, you will receive a password reset link", "Password reset email sent");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<string>.FailureResponse($"Failed to process password reset request: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<string>> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == resetPasswordDto.Email);
+
+                if (user == null)
+                {
+                    return ApiResponse<string>.FailureResponse("Invalid reset request");
+                }
+
+                if (user.PasswordResetToken != resetPasswordDto.Token)
+                {
+                    return ApiResponse<string>.FailureResponse("Invalid reset token");
+                }
+
+                if (user.PasswordResetTokenExpiry < DateTime.UtcNow)
+                {
+                    return ApiResponse<string>.FailureResponse("Reset token has expired. Please request a new one");
+                }
+
+                // Hash new password
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
+
+                // Update password
+                user.PasswordHash = passwordHash;
+                user.PasswordResetToken = null;
+                user.PasswordResetTokenExpiry = null;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return ApiResponse<string>.SuccessResponse("Password reset successfully", "Password reset successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<string>.FailureResponse($"Password reset failed: {ex.Message}");
+            }
+        }
+
+        private string GenerateSecureToken()
+        {
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
         }
     }
 }
