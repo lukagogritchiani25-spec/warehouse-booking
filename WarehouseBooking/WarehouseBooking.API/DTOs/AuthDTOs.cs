@@ -43,6 +43,12 @@ namespace WarehouseBooking.API.DTOs
         public UserDto User { get; set; } = null!;
     }
 
+    public class RegisterResponseDto
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+    }
+
     public class UserDto
     {
         public Guid Id { get; set; }

@@ -47,14 +47,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (userData: RegisterRequest) => {
     const response = await authApi.register(userData);
 
-    if (response.success && response.data) {
-      setUser(response.data.user);
-      setToken(response.data.token);
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    } else {
+    if (!response.success) {
       throw new Error(response.message || 'Registration failed');
     }
+    // Don't auto-login on registration - user needs to confirm email first
   };
 
   const logout = () => {

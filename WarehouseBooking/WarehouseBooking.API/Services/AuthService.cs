@@ -22,14 +22,14 @@ namespace WarehouseBooking.API.Services
             _emailService = emailService;
         }
 
-        public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterDto registerDto)
+        public async Task<ApiResponse<RegisterResponseDto>> RegisterAsync(RegisterDto registerDto)
         {
             try
             {
                 // Check if user already exists
                 if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
                 {
-                    return ApiResponse<AuthResponseDto>.FailureResponse("User with this email already exists");
+                    return ApiResponse<RegisterResponseDto>.FailureResponse("A user with this email address already exists. Please use a different email or try logging in.");
                 }
 
                 // Hash password
@@ -64,21 +64,17 @@ namespace WarehouseBooking.API.Services
                 var confirmationLink = $"{baseUrl}/api/auth/confirm-email?token={confirmationToken}&email={user.Email}";
                 await _emailService.SendEmailConfirmationAsync(user.Email, user.FirstName, confirmationLink);
 
-                // Generate JWT token
-                var token = GenerateJwtToken(user);
-
-                var userDto = MapToUserDto(user);
-                var authResponse = new AuthResponseDto
+                var registerResponse = new RegisterResponseDto
                 {
-                    Token = token,
-                    User = userDto
+                    Email = user.Email,
+                    Message = "Registration successful! Please check your email to verify your account."
                 };
 
-                return ApiResponse<AuthResponseDto>.SuccessResponse(authResponse, "User registered successfully");
+                return ApiResponse<RegisterResponseDto>.SuccessResponse(registerResponse, "Registration successful! Please check your email to verify your account.");
             }
             catch (Exception ex)
             {
-                return ApiResponse<AuthResponseDto>.FailureResponse($"Registration failed: {ex.Message}");
+                return ApiResponse<RegisterResponseDto>.FailureResponse($"Registration failed: {ex.Message}");
             }
         }
 

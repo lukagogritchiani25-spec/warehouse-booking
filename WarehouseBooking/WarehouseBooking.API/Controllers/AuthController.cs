@@ -18,11 +18,11 @@ namespace WarehouseBooking.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<ApiResponse<RegisterResponseDto>>> Register([FromBody] RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ApiResponse<AuthResponseDto>.FailureResponse(
+                return BadRequest(ApiResponse<RegisterResponseDto>.FailureResponse(
                     "Validation failed",
                     ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList()
                 ));
