@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { warehouseApi } from '../services/api';
 import type { WarehouseDto, WarehouseUnitDto } from '../types/warehouse';
 import { PricingType } from '../types/warehouse';
@@ -10,6 +11,7 @@ interface WarehouseDetailProps {
 }
 
 const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailProps) => {
+  const { t } = useTranslation();
   const [warehouse, setWarehouse] = useState<WarehouseDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +30,10 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
       if (response.success && response.data) {
         setWarehouse(response.data);
       } else {
-        setError(response.message || 'Failed to load warehouse details');
+        setError(response.message || t('warehouses.errorLoading'));
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : t('common.error'));
       console.error('Error fetching warehouse details:', err);
     } finally {
       setLoading(false);
@@ -49,10 +51,10 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
 
   const getPricingLabel = (type: PricingType) => {
     switch (type) {
-      case PricingType.Hourly: return '/hour';
-      case PricingType.Daily: return '/day';
-      case PricingType.Monthly: return '/month';
-      case PricingType.Yearly: return '/year';
+      case PricingType.Hourly: return t('units.perHour');
+      case PricingType.Daily: return t('units.perDay');
+      case PricingType.Monthly: return t('units.perMonth');
+      case PricingType.Yearly: return t('units.perYear');
       default: return '';
     }
   };
@@ -74,7 +76,7 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
       <div className="container">
         <div className="loading-state">
           <div className="spinner"></div>
-          <p>Loading warehouse details...</p>
+          <p>{t('warehouses.loadingDetails')}</p>
         </div>
       </div>
     );
@@ -84,10 +86,10 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
     return (
       <div className="container">
         <div className="error-state">
-          <h2>Error Loading Warehouse</h2>
-          <p>{error || 'Warehouse not found'}</p>
+          <h2>{t('warehouses.errorLoading')}</h2>
+          <p>{error || t('warehouses.warehouseNotFound')}</p>
           <button className="btn-primary" onClick={onBack}>
-            Back to Warehouses
+            {t('warehouses.backToWarehouses')}
           </button>
         </div>
       </div>
@@ -100,7 +102,7 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
   return (
     <div className="container">
       <button className="btn-back" onClick={onBack}>
-        ← Back to Warehouses
+        ← {t('warehouses.backToWarehouses')}
       </button>
 
       <div className="warehouse-detail">
@@ -143,11 +145,11 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
 
           <div className="detail-stats">
             <div className="stat-item">
-              <span className="stat-label">Total Units</span>
+              <span className="stat-label">{t('warehouses.totalUnits')}</span>
               <span className="stat-value">{warehouse.units.length}</span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">Available</span>
+              <span className="stat-label">{t('warehouses.available')}</span>
               <span className="stat-value">
                 {warehouse.units.filter((u) => u.isAvailable).length}
               </span>
@@ -158,7 +160,7 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
 
       {/* Available Units */}
       <div className="units-section">
-        <h2>Available Units</h2>
+        <h2>{t('warehouses.availableUnits')}</h2>
         <div className="units-grid">
           {warehouse.units
             .filter((unit) => unit.isAvailable && unit.isActive)
@@ -179,12 +181,12 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
                   {/* Features */}
                   {unit.features && (
                     <div className="unit-features">
-                      {unit.features.climateControl && <span className="feature">❄️ Climate Control</span>}
-                      {unit.features.security && <span className="feature">🔒 Security</span>}
-                      {unit.features.access24x7 && <span className="feature">🕒 24/7 Access</span>}
-                      {unit.features.cctv && <span className="feature">📹 CCTV</span>}
-                      {unit.features.fireSafety && <span className="feature">🔥 Fire Safety</span>}
-                      {unit.features.insurance && <span className="feature">🛡️ Insurance</span>}
+                      {unit.features.climateControl && <span className="feature">❄️ {t('features.climateControl')}</span>}
+                      {unit.features.security && <span className="feature">🔒 {t('features.security')}</span>}
+                      {unit.features.access24x7 && <span className="feature">🕒 {t('features.access24x7')}</span>}
+                      {unit.features.cctv && <span className="feature">📹 {t('features.cctv')}</span>}
+                      {unit.features.fireSafety && <span className="feature">🔥 {t('features.fireSafety')}</span>}
+                      {unit.features.insurance && <span className="feature">🛡️ {t('features.insurance')}</span>}
                     </div>
                   )}
 
@@ -194,12 +196,12 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
                       {monthlyPrice.discount > 0 && (
                         <>
                           <span className="price-original">${monthlyPrice.original.toFixed(2)}</span>
-                          <span className="price-discount">{monthlyPrice.discount}% OFF</span>
+                          <span className="price-discount">{monthlyPrice.discount}% {t('units.off')}</span>
                         </>
                       )}
                       <div className="price-final">
                         <span className="price-amount">${monthlyPrice.final.toFixed(2)}</span>
-                        <span className="price-period">/month</span>
+                        <span className="price-period">{t('units.perMonth')}</span>
                       </div>
                     </div>
                   )}
@@ -208,7 +210,7 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
                     className="btn-primary btn-block"
                     onClick={() => onBookUnit(unit, warehouse.name)}
                   >
-                    Book This Unit
+                    {t('units.bookThisUnit')}
                   </button>
                 </div>
               );
@@ -217,7 +219,7 @@ const WarehouseDetail = ({ warehouseId, onBack, onBookUnit }: WarehouseDetailPro
 
         {warehouse.units.filter((u) => u.isAvailable && u.isActive).length === 0 && (
           <div className="empty-state">
-            <p>No units currently available</p>
+            <p>{t('warehouses.noUnitsAvailable')}</p>
           </div>
         )}
       </div>

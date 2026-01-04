@@ -15,9 +15,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Expose port
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
+# Expose port - Render uses PORT env variable
+EXPOSE 10000
+ENV ASPNETCORE_URLS=http://+:${PORT:-10000}
 
 # Start the application
 ENTRYPOINT ["dotnet", "WarehouseBooking.API.dll"]

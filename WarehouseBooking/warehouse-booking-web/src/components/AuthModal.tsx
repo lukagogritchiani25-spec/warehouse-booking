@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
@@ -9,6 +10,7 @@ interface AuthModalProps {
 type AuthMode = 'login' | 'register';
 
 const AuthModal = ({ onClose }: AuthModalProps) => {
+  const { t } = useTranslation();
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -41,7 +43,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
         setRegistrationSuccess(true);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      setError(err instanceof Error ? err.message : t('auth.authFailed'));
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content auth-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{mode === 'login' ? 'Sign In' : 'Create Account'}</h2>
+          <h2>{mode === 'login' ? t('auth.signIn') : t('auth.createAccount')}</h2>
           <button className="modal-close" onClick={onClose}>
             ✕
           </button>
@@ -66,15 +68,15 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
           {registrationSuccess ? (
             <div className="success-message-container">
               <div className="success-icon-large">✓</div>
-              <h3>Registration Successful!</h3>
+              <h3>{t('auth.registrationSuccess')}</h3>
               <p>
-                We've sent a verification email to <strong>{email}</strong>
+                {t('auth.verificationEmailSent')} <strong>{email}</strong>
               </p>
               <p className="info-text">
-                Please check your inbox and click the verification link to activate your account.
+                {t('auth.checkInbox')}
               </p>
               <button onClick={onClose} className="btn-primary">
-                Got it!
+                {t('auth.gotIt')}
               </button>
               <style>{`
                 .success-message-container {
@@ -120,7 +122,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
                 {mode === 'register' && (
                   <>
                     <div className="form-group">
-                      <label htmlFor="firstName">First Name</label>
+                      <label htmlFor="firstName">{t('auth.firstName')}</label>
                       <input
                         type="text"
                         id="firstName"
@@ -131,7 +133,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
                       />
                     </div>
                     <div className="form-group">
-                      <label htmlFor="lastName">Last Name</label>
+                      <label htmlFor="lastName">{t('auth.lastName')}</label>
                       <input
                         type="text"
                         id="lastName"
@@ -145,7 +147,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
                 )}
 
                 <div className="form-group">
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor="email">{t('auth.email')}</label>
                   <input
                     type="email"
                     id="email"
@@ -158,7 +160,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
 
                 {mode === 'register' && (
                   <div className="form-group">
-                    <label htmlFor="phoneNumber">Phone Number (Optional)</label>
+                    <label htmlFor="phoneNumber">{t('auth.phoneNumber')}</label>
                     <input
                       type="tel"
                       id="phoneNumber"
@@ -170,7 +172,7 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
                 )}
 
                 <div className="form-group">
-                  <label htmlFor="password">Password</label>
+                  <label htmlFor="password">{t('auth.password')}</label>
                   <input
                     type="password"
                     id="password"
@@ -185,13 +187,13 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
                 {error && <div className="error-message">{error}</div>}
 
                 <button type="submit" className="btn-primary btn-block" disabled={loading}>
-                  {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+                  {loading ? t('auth.pleaseWait') : mode === 'login' ? t('auth.signIn') : t('auth.createAccount')}
                 </button>
 
                 {mode === 'login' && (
                   <div className="forgot-password-link">
                     <button onClick={handleForgotPassword} className="link-button">
-                      Forgot password?
+                      {t('auth.forgotPassword')}
                     </button>
                   </div>
                 )}
@@ -200,16 +202,16 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
               <div className="auth-switch">
                 {mode === 'login' ? (
                   <p>
-                    Don't have an account?{' '}
+                    {t('auth.dontHaveAccount')}{' '}
                     <button onClick={() => setMode('register')} className="link-button">
-                      Sign up
+                      {t('auth.signUp')}
                     </button>
                   </p>
                 ) : (
                   <p>
-                    Already have an account?{' '}
+                    {t('auth.alreadyHaveAccount')}{' '}
                     <button onClick={() => setMode('login')} className="link-button">
-                      Sign in
+                      {t('auth.signIn')}
                     </button>
                   </p>
                 )}

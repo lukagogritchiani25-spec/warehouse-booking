@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { WarehouseFilters } from '../types/warehouse';
 
 interface FilterPanelProps {
@@ -8,6 +9,7 @@ interface FilterPanelProps {
 }
 
 const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => {
+  const { t } = useTranslation();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSearchChange = (value: string) => {
@@ -55,10 +57,10 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
   return (
     <div className="filter-panel">
       <div className="filter-header">
-        <h3>🔍 Search & Filter</h3>
+        <h3>🔍 {t('filters.searchAndFilter')}</h3>
         {hasActiveFilters() && (
           <button className="btn-clear-filters" onClick={onReset}>
-            Clear All
+            {t('common.clearAll')}
           </button>
         )}
       </div>
@@ -66,10 +68,10 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
       {/* Search and Location */}
       <div className="filter-section">
         <div className="filter-group">
-          <label>Search Warehouses</label>
+          <label>{t('filters.searchWarehouses')}</label>
           <input
             type="text"
-            placeholder="Search by name or description..."
+            placeholder={t('filters.searchPlaceholder')}
             value={filters.searchText}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="filter-input"
@@ -77,10 +79,10 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
         </div>
 
         <div className="filter-group">
-          <label>Location</label>
+          <label>{t('filters.location')}</label>
           <input
             type="text"
-            placeholder="City or region..."
+            placeholder={t('filters.locationPlaceholder')}
             value={filters.location}
             onChange={(e) => handleLocationChange(e.target.value)}
             className="filter-input"
@@ -91,16 +93,16 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
       {/* Sort By */}
       <div className="filter-section">
         <div className="filter-group">
-          <label>Sort By</label>
+          <label>{t('filters.sortBy')}</label>
           <select
             value={filters.sortBy}
             onChange={(e) => handleSortChange(e.target.value as WarehouseFilters['sortBy'])}
             className="filter-select"
           >
-            <option value="name">Name (A-Z)</option>
-            <option value="price-asc">Price (Low to High)</option>
-            <option value="price-desc">Price (High to Low)</option>
-            <option value="availability">Most Available Units</option>
+            <option value="name">{t('filters.nameAZ')}</option>
+            <option value="price-asc">{t('filters.priceLowHigh')}</option>
+            <option value="price-desc">{t('filters.priceHighLow')}</option>
+            <option value="availability">{t('filters.mostAvailable')}</option>
           </select>
         </div>
       </div>
@@ -110,17 +112,17 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
         className="btn-advanced-toggle"
         onClick={() => setShowAdvanced(!showAdvanced)}
       >
-        {showAdvanced ? '▼' : '▶'} Advanced Filters
+        {showAdvanced ? '▼' : '▶'} {t('filters.advancedFilters')}
       </button>
 
       {showAdvanced && (
         <div className="advanced-filters">
           {/* Price Range */}
           <div className="filter-section">
-            <label className="filter-section-title">Price Range (per month)</label>
+            <label className="filter-section-title">{t('filters.priceRange')}</label>
             <div className="filter-row">
               <div className="filter-group">
-                <label>Min Price ($)</label>
+                <label>{t('filters.minPrice')}</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -136,7 +138,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                 />
               </div>
               <div className="filter-group">
-                <label>Max Price ($)</label>
+                <label>{t('filters.maxPrice')}</label>
                 <input
                   type="number"
                   placeholder="10000"
@@ -156,10 +158,10 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
 
           {/* Size Range */}
           <div className="filter-section">
-            <label className="filter-section-title">Unit Size (m²)</label>
+            <label className="filter-section-title">{t('filters.unitSize')}</label>
             <div className="filter-row">
               <div className="filter-group">
-                <label>Min Size</label>
+                <label>{t('filters.minSize')}</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -175,7 +177,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                 />
               </div>
               <div className="filter-group">
-                <label>Max Size</label>
+                <label>{t('filters.maxSize')}</label>
                 <input
                   type="number"
                   placeholder="1000"
@@ -195,7 +197,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
 
           {/* Features */}
           <div className="filter-section">
-            <label className="filter-section-title">Features</label>
+            <label className="filter-section-title">{t('features.title')}</label>
             <div className="feature-checkboxes">
               <label className="feature-checkbox">
                 <input
@@ -203,7 +205,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.climateControl}
                   onChange={() => handleFeatureToggle('climateControl')}
                 />
-                <span>🌡️ Climate Control</span>
+                <span>🌡️ {t('features.climateControl')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -211,7 +213,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.security}
                   onChange={() => handleFeatureToggle('security')}
                 />
-                <span>🔒 Security</span>
+                <span>🔒 {t('features.security')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -219,7 +221,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.access24x7}
                   onChange={() => handleFeatureToggle('access24x7')}
                 />
-                <span>🕐 24/7 Access</span>
+                <span>🕐 {t('features.access24x7')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -227,7 +229,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.cctv}
                   onChange={() => handleFeatureToggle('cctv')}
                 />
-                <span>📹 CCTV</span>
+                <span>📹 {t('features.cctv')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -235,7 +237,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.fireSafety}
                   onChange={() => handleFeatureToggle('fireSafety')}
                 />
-                <span>🔥 Fire Safety</span>
+                <span>🔥 {t('features.fireSafety')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -243,7 +245,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.loadingDock}
                   onChange={() => handleFeatureToggle('loadingDock')}
                 />
-                <span>🚛 Loading Dock</span>
+                <span>🚛 {t('features.loadingDock')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -251,7 +253,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.forkliftAccess}
                   onChange={() => handleFeatureToggle('forkliftAccess')}
                 />
-                <span>🏗️ Forklift Access</span>
+                <span>🏗️ {t('features.forkliftAccess')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -259,7 +261,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.insurance}
                   onChange={() => handleFeatureToggle('insurance')}
                 />
-                <span>🛡️ Insurance</span>
+                <span>🛡️ {t('features.insurance')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -267,7 +269,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.powerSupply}
                   onChange={() => handleFeatureToggle('powerSupply')}
                 />
-                <span>⚡ Power Supply</span>
+                <span>⚡ {t('features.powerSupply')}</span>
               </label>
               <label className="feature-checkbox">
                 <input
@@ -275,7 +277,7 @@ const FilterPanel = ({ filters, onFilterChange, onReset }: FilterPanelProps) => 
                   checked={filters.features.pestControl}
                   onChange={() => handleFeatureToggle('pestControl')}
                 />
-                <span>🐛 Pest Control</span>
+                <span>🐛 {t('features.pestControl')}</span>
               </label>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { warehouseApi } from '../services/api';
 import type { WarehouseDto, WarehouseFilters } from '../types/warehouse';
 import { PricingType } from '../types/warehouse';
@@ -32,6 +33,7 @@ const defaultFilters: WarehouseFilters = {
 };
 
 const WarehouseList = ({ onViewDetails }: WarehouseListProps) => {
+  const { t } = useTranslation();
   const [warehouses, setWarehouses] = useState<WarehouseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +51,10 @@ const WarehouseList = ({ onViewDetails }: WarehouseListProps) => {
       if (response.success && response.data) {
         setWarehouses(response.data);
       } else {
-        setError(response.message || 'Failed to load warehouses');
+        setError(response.message || t('warehouses.errorLoading'));
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : t('common.error'));
       console.error('Error fetching warehouses:', err);
     } finally {
       setLoading(false);
@@ -186,7 +188,7 @@ const WarehouseList = ({ onViewDetails }: WarehouseListProps) => {
       <div className="container">
         <div className="loading-state">
           <div className="spinner"></div>
-          <p>Loading warehouses...</p>
+          <p>{t('warehouses.loadingWarehouses')}</p>
         </div>
       </div>
     );
@@ -196,10 +198,10 @@ const WarehouseList = ({ onViewDetails }: WarehouseListProps) => {
     return (
       <div className="container">
         <div className="error-state">
-          <h2>Error Loading Warehouses</h2>
+          <h2>{t('warehouses.errorLoading')}</h2>
           <p>{error}</p>
           <button className="btn-primary" onClick={fetchWarehouses}>
-            Retry
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -209,8 +211,8 @@ const WarehouseList = ({ onViewDetails }: WarehouseListProps) => {
   return (
     <div className="container">
       <header className="page-header">
-        <h1>Available Warehouses</h1>
-        <p>Find the perfect storage solution for your needs</p>
+        <h1>{t('warehouses.title')}</h1>
+        <p>{t('warehouses.subtitle')}</p>
       </header>
 
       <div className="warehouse-list-layout">
@@ -225,17 +227,17 @@ const WarehouseList = ({ onViewDetails }: WarehouseListProps) => {
         <div className="warehouse-results">
           <div className="results-header">
             <p className="results-count">
-              {filteredAndSortedWarehouses.length} warehouse
-              {filteredAndSortedWarehouses.length !== 1 ? 's' : ''} found
+              {filteredAndSortedWarehouses.length} {t('nav.warehouses').toLowerCase()}
+              {' '}{t('common.filter').toLowerCase()}
             </p>
           </div>
 
           {filteredAndSortedWarehouses.length === 0 ? (
             <div className="empty-state">
-              <p>No warehouses match your filters</p>
-              <p>Try adjusting your search criteria</p>
+              <p>{t('warehouses.noMatch')}</p>
+              <p>{t('warehouses.tryAdjusting')}</p>
               <button className="btn-primary" onClick={() => setFilters(defaultFilters)}>
-                Reset Filters
+                {t('warehouses.resetFilters')}
               </button>
             </div>
           ) : (

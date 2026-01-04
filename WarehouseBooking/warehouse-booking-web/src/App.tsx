@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import WarehouseList from './pages/WarehouseList';
 import WarehouseDetail from './pages/WarehouseDetail';
 import MyBookings from './pages/MyBookings';
 import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import type { WarehouseUnitDto } from './types/warehouse';
 import type { BookingData } from './components/BookingModal';
 import { useAuth } from './context/AuthContext';
@@ -13,6 +15,7 @@ import './App.css';
 type Page = 'list' | 'detail' | 'bookings';
 
 function App() {
+  const { t } = useTranslation();
   const { isAuthenticated, user, logout } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('list');
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(null);
@@ -59,13 +62,13 @@ function App() {
       });
 
       if (response.success) {
-        alert(`Booking confirmed!\n\nUnit: ${selectedUnit?.unit.unitNumber}\nStart: ${bookingData.startDate}\nEnd: ${bookingData.endDate}\nTotal: $${bookingData.totalAmount.toFixed(2)}\n\nYou can view your booking in "My Bookings"`);
+        alert(`${t('booking.bookingConfirmed')}\n\nUnit: ${selectedUnit?.unit.unitNumber}\nStart: ${bookingData.startDate}\nEnd: ${bookingData.endDate}\nTotal: $${bookingData.totalAmount.toFixed(2)}\n\n${t('booking.viewInMyBookings')}`);
         setSelectedUnit(null);
       } else {
-        alert(response.message || 'Failed to create booking');
+        alert(response.message || t('booking.failedToCreate'));
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to create booking');
+      alert(err instanceof Error ? err.message : t('booking.failedToCreate'));
     }
   };
 
@@ -78,7 +81,7 @@ function App() {
             onClick={handleBackToList}
             style={{ cursor: 'pointer' }}
           >
-            <h2>🏢 Warehouse Booking</h2>
+            <h2>🏢 {t('common.appName')}</h2>
           </div>
           <div className="navbar-menu">
             <a
@@ -89,7 +92,7 @@ function App() {
                 handleBackToList();
               }}
             >
-              Warehouses
+              {t('nav.warehouses')}
             </a>
             <a
               href="#"
@@ -103,13 +106,13 @@ function App() {
                 }
               }}
             >
-              My Bookings
+              {t('nav.myBookings')}
             </a>
             {isAuthenticated ? (
               <div className="user-menu">
                 <span className="user-name">{user?.firstName} {user?.lastName}</span>
                 <button onClick={logout} className="nav-link">
-                  Sign Out
+                  {t('nav.signOut')}
                 </button>
               </div>
             ) : (
@@ -121,9 +124,10 @@ function App() {
                   setShowAuthModal(true);
                 }}
               >
-                Sign In
+                {t('nav.signIn')}
               </a>
             )}
+            <LanguageSwitcher />
           </div>
         </div>
       </nav>
@@ -155,7 +159,7 @@ function App() {
 
       <footer className="footer">
         <div className="container">
-          <p>&copy; 2025 Warehouse Booking. All rights reserved.</p>
+          <p>&copy; 2025 {t('common.appName')}. {t('common.allRightsReserved')}.</p>
         </div>
       </footer>
     </div>

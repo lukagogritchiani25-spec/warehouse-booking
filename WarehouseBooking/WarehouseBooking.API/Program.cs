@@ -77,12 +77,21 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Add Resend Email Service
+// Add Resend Email Service (optional - app will work without it but emails won't send)
 var resendApiKey = builder.Configuration["Resend:ApiKey"]
-    ?? Environment.GetEnvironmentVariable("Resend__ApiKey")
-    ?? throw new InvalidOperationException("Resend API Key not found");
+    ?? Environment.GetEnvironmentVariable("Resend__ApiKey");
 
-builder.Services.AddSingleton<Resend.IResend>(sp => Resend.ResendClient.Create(resendApiKey));
+if (!string.IsNullOrEmpty(resendApiKey))
+{
+    builder.Services.AddSingleton<Resend.IResend>(sp => Resend.ResendClient.Create(resendApiKey));
+    Console.WriteLine("Resend email service configured.");
+}
+else
+{
+    // Add a dummy implementation that logs instead of sending
+    Console.WriteLine("WARNING: Resend API Key not found. Email sending is disabled.");
+    builder.Services.AddSingleton<Resend.IResend>(sp => Resend.ResendClient.Create("dummy_key"));
+}
 
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -144,15 +153,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline - Enable Swagger in all environments
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Warehouse Booking API v1");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Warehouse Booking API v1");
+});
 
 // Add global error handling middleware
 app.UseMiddleware<ErrorHandlingMiddleware>();

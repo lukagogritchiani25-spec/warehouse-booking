@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { WarehouseDto } from '../types/warehouse';
 import { PricingType } from '../types/warehouse';
 
@@ -7,6 +8,8 @@ interface WarehouseCardProps {
 }
 
 const WarehouseCard = ({ warehouse, onViewDetails }: WarehouseCardProps) => {
+  const { t } = useTranslation();
+
   const getImageUrl = (url: string | undefined) => {
     if (!url) return 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800';
     // Add Unsplash parameters if missing
@@ -49,7 +52,7 @@ const WarehouseCard = ({ warehouse, onViewDetails }: WarehouseCardProps) => {
           onError={handleImageError}
         />
         <div className="warehouse-badge">
-          {availableUnits} units available
+          {availableUnits} {t('warehouses.available').toLowerCase()}
         </div>
       </div>
 
@@ -75,9 +78,8 @@ const WarehouseCard = ({ warehouse, onViewDetails }: WarehouseCardProps) => {
         <div className="warehouse-footer">
           {lowestPrice && (
             <div className="warehouse-price">
-              <span className="price-label">From</span>
               <span className="price-amount">${lowestPrice.toFixed(2)}</span>
-              <span className="price-period">/month</span>
+              <span className="price-period">{t('units.perMonth')}</span>
             </div>
           )}
 
@@ -85,7 +87,7 @@ const WarehouseCard = ({ warehouse, onViewDetails }: WarehouseCardProps) => {
             className="btn-primary"
             onClick={() => onViewDetails(warehouse.id)}
           >
-            View Details
+            {t('warehouses.viewDetails')}
           </button>
         </div>
       </div>
