@@ -111,6 +111,22 @@ export const authApi = {
     );
     return data;
   },
+
+  googleLogin: async (idToken: string) => {
+    const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
+      '/auth/google',
+      { idToken }
+    );
+    return data;
+  },
+
+  updateProfile: async (profileData: { phoneNumber?: string; address?: string }) => {
+    const { data } = await apiClient.put<ApiResponse<AuthResponse['user']>>(
+      '/auth/profile',
+      profileData
+    );
+    return data;
+  },
 };
 
 // Booking API

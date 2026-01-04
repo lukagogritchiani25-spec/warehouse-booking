@@ -8,6 +8,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
   register: (userData: RegisterRequest) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
+  updateProfile: (profileData: { phoneNumber?: string; address?: string }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -53,6 +55,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Don't auto-login on registration - user needs to confirm email first
   };
 
+  const googleLogin = async (idToken: string) => {
+    const response = await authApi.googleLogin(idToken);
+
+    if (response.success && response.data) {
+      setUser(response.data.user);
+      setToken(response.data.token);
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    } else {
+      throw new Error(response.message || 'Google login failed');
+    }
+  };
+
+  const updateProfile = async (profileData: { phoneNumber?: string; address?: string }) => {
+    const response = await authApi.updateProfile(profileData);
+
+    if (response.success && response.data) {
+      setUser(response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
+    } else {
+      throw new Error(response.message || 'Failed to update profile');
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -68,6 +94,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user && !!token,
         login,
         register,
+        googleLogin,
+        updateProfile,
         logout,
         isLoading,
       }}

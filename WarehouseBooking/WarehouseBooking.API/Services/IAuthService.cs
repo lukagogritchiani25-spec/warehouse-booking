@@ -6,10 +6,12 @@ namespace WarehouseBooking.API.Services
     {
         Task<ApiResponse<RegisterResponseDto>> RegisterAsync(RegisterDto registerDto);
         Task<ApiResponse<AuthResponseDto>> LoginAsync(LoginDto loginDto);
+        Task<ApiResponse<AuthResponseDto>> GoogleLoginAsync(string idToken);
         Task<ApiResponse<UserDto>> GetUserByIdAsync(Guid userId);
         Task<ApiResponse<string>> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto);
         Task<ApiResponse<string>> ResendConfirmationEmailAsync(ResendConfirmationEmailDto resendDto);
         Task<ApiResponse<string>> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto);
         Task<ApiResponse<string>> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
+        Task<ApiResponse<UserDto>> UpdateProfileAsync(Guid userId, UpdateProfileDto updateProfileDto);
     }
 }

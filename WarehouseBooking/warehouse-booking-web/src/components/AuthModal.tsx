@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
@@ -11,7 +12,7 @@ type AuthMode = 'login' | 'register';
 
 const AuthModal = ({ onClose }: AuthModalProps) => {
   const { t } = useTranslation();
-  const { login, register } = useAuth();
+  const { login, register, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -52,6 +53,29 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
   const handleForgotPassword = () => {
     onClose();
     navigate('/forgot-password');
+  };
+
+  const handleGoogleSuccess = async (response: CredentialResponse) => {
+    if (!response.credential) {
+      setError('Google login failed - no credential received');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      await googleLogin(response.credential);
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Google login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google login failed');
   };
 
   return (
@@ -198,6 +222,21 @@ const AuthModal = ({ onClose }: AuthModalProps) => {
                   </div>
                 )}
               </form>
+
+              <div className="social-login-divider">
+                <span>{t('auth.orContinueWith')}</span>
+              </div>
+
+              <div className="google-login-container">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  width="100%"
+                  text={mode === 'login' ? 'signin_with' : 'signup_with'}
+                />
+              </div>
 
               <div className="auth-switch">
                 {mode === 'login' ? (

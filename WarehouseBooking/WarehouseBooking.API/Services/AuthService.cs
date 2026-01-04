@@ -1,3 +1,4 @@
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -117,6 +118,88 @@ namespace WarehouseBooking.API.Services
             catch (Exception ex)
             {
                 return ApiResponse<AuthResponseDto>.FailureResponse($"Login failed: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<AuthResponseDto>> GoogleLoginAsync(string idToken)
+        {
+            try
+            {
+                // Validate the Google ID token
+                var googleClientId = _configuration["Google:ClientId"]
+                    ?? Environment.GetEnvironmentVariable("Google__ClientId")
+                    ?? throw new InvalidOperationException("Google ClientId not configured");
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { googleClientId }
+                };
+
+                GoogleJsonWebSignature.Payload payload;
+                try
+                {
+                    payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                }
+                catch (InvalidJwtException)
+                {
+                    return ApiResponse<AuthResponseDto>.FailureResponse("Invalid Google token");
+                }
+
+                // Check if user already exists by GoogleId or Email
+                var user = await _context.Users.FirstOrDefaultAsync(u =>
+                    u.GoogleId == payload.Subject || u.Email == payload.Email);
+
+                if (user == null)
+                {
+                    // Create new user from Google account
+                    user = new User
+                    {
+                        Id = Guid.NewGuid(),
+                        FirstName = payload.GivenName ?? payload.Name?.Split(' ').FirstOrDefault() ?? "User",
+                        LastName = payload.FamilyName ?? payload.Name?.Split(' ').Skip(1).FirstOrDefault() ?? "",
+                        Email = payload.Email,
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // Random password for OAuth users
+                        GoogleId = payload.Subject,
+                        IsEmailConfirmed = payload.EmailVerified,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+                else if (string.IsNullOrEmpty(user.GoogleId))
+                {
+                    // Link Google account to existing user
+                    user.GoogleId = payload.Subject;
+                    if (!user.IsEmailConfirmed && payload.EmailVerified)
+                    {
+                        user.IsEmailConfirmed = true;
+                    }
+                    user.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                }
+
+                // Check if user is active
+                if (!user.IsActive)
+                {
+                    return ApiResponse<AuthResponseDto>.FailureResponse("Account is inactive");
+                }
+
+                // Generate JWT token
+                var token = GenerateJwtToken(user);
+
+                var userDto = MapToUserDto(user);
+                var authResponse = new AuthResponseDto
+                {
+                    Token = token,
+                    User = userDto
+                };
+
+                return ApiResponse<AuthResponseDto>.SuccessResponse(authResponse, "Google login successful");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<AuthResponseDto>.FailureResponse($"Google login failed: {ex.Message}");
             }
         }
 
@@ -342,6 +425,39 @@ namespace WarehouseBooking.API.Services
             catch (Exception ex)
             {
                 return ApiResponse<string>.FailureResponse($"Password reset failed: {ex.Message}");
+            }
+        }
+
+        public async Task<ApiResponse<UserDto>> UpdateProfileAsync(Guid userId, UpdateProfileDto updateProfileDto)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+
+                if (user == null)
+                {
+                    return ApiResponse<UserDto>.FailureResponse("User not found");
+                }
+
+                if (!string.IsNullOrEmpty(updateProfileDto.PhoneNumber))
+                {
+                    user.PhoneNumber = updateProfileDto.PhoneNumber;
+                }
+
+                if (!string.IsNullOrEmpty(updateProfileDto.Address))
+                {
+                    user.Address = updateProfileDto.Address;
+                }
+
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                var userDto = MapToUserDto(user);
+                return ApiResponse<UserDto>.SuccessResponse(userDto, "Profile updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<UserDto>.FailureResponse($"Failed to update profile: {ex.Message}");
             }
         }
 

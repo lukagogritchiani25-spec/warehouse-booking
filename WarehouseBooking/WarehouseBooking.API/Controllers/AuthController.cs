@@ -59,6 +59,27 @@ namespace WarehouseBooking.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("google")]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> GoogleLogin([FromBody] GoogleLoginDto googleLoginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<AuthResponseDto>.FailureResponse(
+                    "Validation failed",
+                    ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList()
+                ));
+            }
+
+            var result = await _authService.GoogleLoginAsync(googleLoginDto.IdToken);
+
+            if (!result.Success)
+            {
+                return Unauthorized(result);
+            }
+
+            return Ok(result);
+        }
+
         [Authorize]
         [HttpGet("me")]
         public async Task<ActionResult<ApiResponse<UserDto>>> GetCurrentUser()
@@ -78,6 +99,29 @@ namespace WarehouseBooking.API.Controllers
             if (!result.Success)
             {
                 return NotFound(result);
+            }
+
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<ActionResult<ApiResponse<UserDto>>> UpdateProfile([FromBody] UpdateProfileDto updateProfileDto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? User.FindFirst("sub")?.Value
+                           ?? User.FindFirst("nameid")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(ApiResponse<UserDto>.FailureResponse("Invalid token"));
+            }
+
+            var result = await _authService.UpdateProfileAsync(userId, updateProfileDto);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
             }
 
             return Ok(result);

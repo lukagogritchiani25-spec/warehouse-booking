@@ -46,6 +46,9 @@ namespace WarehouseBooking.API.Models
 
         public DateTime? UpdatedAt { get; set; }
 
+        // OAuth fields
+        public string? GoogleId { get; set; }
+
         // Navigation properties
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }

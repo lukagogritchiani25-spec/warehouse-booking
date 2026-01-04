@@ -48,3 +48,4 @@ Thumbs.db
 coverage/
 *.cover
 .nyc_output/
+WarehouseBooking.API/appsettings.Development.json

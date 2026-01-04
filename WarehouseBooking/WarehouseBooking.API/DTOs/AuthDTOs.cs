@@ -98,4 +98,19 @@ namespace WarehouseBooking.API.DTOs
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
     }
+
+    public class GoogleLoginDto
+    {
+        [Required]
+        public string IdToken { get; set; } = string.Empty;
+    }
+
+    public class UpdateProfileDto
+    {
+        [Phone]
+        public string? PhoneNumber { get; set; }
+
+        [MaxLength(500)]
+        public string? Address { get; set; }
+    }
 }

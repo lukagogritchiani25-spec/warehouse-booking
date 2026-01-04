@@ -41,7 +41,8 @@
     "verificationEmailSent": "We've sent a verification email to",
     "checkInbox": "Please check your inbox and click the verification link to activate your account.",
     "gotIt": "Got it!",
-    "authFailed": "Authentication failed"
+    "authFailed": "Authentication failed",
+    "orContinueWith": "or continue with"
   },
   "warehouses": {
     "title": "Available Warehouses",
@@ -122,7 +123,13 @@
     "invalidCalculation": "Invalid booking calculation",
     "bookingConfirmed": "Booking confirmed!",
     "viewInMyBookings": "You can view your booking in \"My Bookings\"",
-    "failedToCreate": "Failed to create booking"
+    "failedToCreate": "Failed to create booking",
+    "phoneNumberRequired": "Phone Number Required",
+    "phoneNumberExplanation": "To complete your booking, please provide your phone number. This allows the warehouse manager to contact you.",
+    "phoneRequired": "Phone number is required",
+    "invalidPhone": "Please enter a valid phone number",
+    "phoneUpdateFailed": "Failed to save phone number",
+    "continueBooking": "Continue Booking"
   },
   "myBookings": {
     "title": "My Bookings",
